@@ -14,6 +14,8 @@ public:
 
     SOCKET accept();
 
+    bool ready();
+
 private:
     SOCKET sockFd;
 };

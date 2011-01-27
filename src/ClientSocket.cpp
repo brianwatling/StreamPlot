@@ -33,6 +33,7 @@ const char* getLastErrorMessage()
 #include <sys/types.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#include <poll.h>
 
 namespace streamsocket
 {
@@ -54,6 +55,10 @@ const char* getLastErrorMessage()
 
 namespace streamsocket
 {
+
+ClientSocket::ClientSocket(SOCKET sockFd)
+: sockFd(sockFd), streamBuf(this)
+{}
 
 ClientSocket::ClientSocket(const char* host, const char* port)
 : sockFd(-1), streamBuf(this)
@@ -83,7 +88,7 @@ ClientSocket::ClientSocket(const char* host, const char* port)
     if(connect(sockFd, res->ai_addr, res->ai_addrlen))
     {
         freeaddrinfo(res);
-        close(sockFd);
+        close();
         throw std::runtime_error(std::string("error connecting to ") + host + ":" + port + "(" + getLastErrorMessage() + ")");
     }
 
@@ -123,12 +128,50 @@ size_t ClientSocket::read(void* data, size_t len)
     return ret;
 }
 
-ClientSocket::~ClientSocket()
+bool ClientSocket::readable()
+{
+    if(sockFd < 0)
+        return false;
+
+    struct pollfd pfd;
+    pfd.fd = sockFd;
+    pfd.events = POLLIN;
+    const int ret = poll(&pfd, 1, 0);
+    if(ret < 0)
+    {
+        throw std::runtime_error(std::string("error polling socket: ") + getLastErrorMessage());
+    }
+    return ret > 0;
+}
+
+bool ClientSocket::writable()
+{
+    if(sockFd < 0)
+        return false;
+
+    struct pollfd pfd;
+    pfd.fd = sockFd;
+    pfd.events = POLLOUT;
+    const int ret = poll(&pfd, 1, 0);
+    if(ret < 0)
+    {
+        throw std::runtime_error(std::string("error polling socket: ") + getLastErrorMessage());
+    }
+    return ret > 0;
+}
+
+void ClientSocket::close()
 {
     if(sockFd >= 0)
     {
-        close(sockFd);
+        ::close(sockFd);
     }
+    sockFd = -1;
+}
+
+ClientSocket::~ClientSocket()
+{
+    close();
 }
 
 std::streambuf* ClientSocket::getStreamBuf()

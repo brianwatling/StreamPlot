@@ -27,11 +27,19 @@ class ClientSocket : boost::noncopyable
 public:
     ClientSocket(const char* host, const char* port);
 
+    ClientSocket(SOCKET sockFd);
+
     void tcpNoDelay(bool enable);
 
     void write(const void* data, size_t len);
 
     size_t read(void* data, size_t len);
+
+    bool readable();
+
+    bool writable();
+
+    void close();
 
     virtual ~ClientSocket();
 

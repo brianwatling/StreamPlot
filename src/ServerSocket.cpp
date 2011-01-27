@@ -20,6 +20,7 @@ extern int close(SOCKET sock);
 #include <sys/types.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#include <poll.h>
 #endif
 
 namespace streamsocket
@@ -79,6 +80,19 @@ SOCKET ServerSocket::accept()
         throw std::runtime_error(std::string("error accepting new client: ") + strerror(errno));
     }
     return ret;
+}
+
+bool ServerSocket::ready()
+{
+    struct pollfd pfd;
+    pfd.fd = sockFd;
+    pfd.events = POLLIN;
+    const int ret = poll(&pfd, 1, 0);
+    if(ret < 0)
+    {
+        throw std::runtime_error(std::string("error polling socket: ") + getLastErrorMessage());
+    }
+    return ret > 0;
 }
 
 };
