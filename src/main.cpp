@@ -1,8 +1,14 @@
 #include <GLUT/glut.h>
 #include <boost/program_options.hpp>
+#include <memory>
 #include <iostream>
+#include <string>
+#include "ServerSocket.h"
 
 namespace po = boost::program_options;
+
+std::auto_ptr<streamsocket::ServerSocket> serverSocket;
+
 
 void display(void)
 { 
@@ -17,12 +23,16 @@ int main(int argc, char* argv[])
 {
     int width;
     int height;
+    std::string host;
+    std::string port;
     glutInit(&argc, argv);
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
         ("width", po::value<int>(&width)->default_value(1024), "screen width")
         ("height", po::value<int>(&height)->default_value(768), "screen height")
+        ("host", po::value<std::string>(&host)->default_value("localhost"), "host to listen for streams on")
+        ("port", po::value<std::string>(&port)->default_value("10000"), "port to listen for streams on")
     ;
 
     po::variables_map vm;
@@ -41,6 +51,8 @@ int main(int argc, char* argv[])
     glutCreateWindow ("StreamPlot");
 
     glutDisplayFunc(display);
+
+    serverSocket.reset(new streamsocket::ServerSocket(host, port));
 
     glutMainLoop();
 
