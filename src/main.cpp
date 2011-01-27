@@ -140,10 +140,10 @@ void display(void)
     for(GLdouble cur = 0; cur <= 10; cur += 1)
     {
         const GLdouble yOffset = cur * height * 0.1;
-        renderBitmapString(yAxisTextStart, bottomLeft.y + yOffset, GLUT_BITMAP_8_BY_13, doubleToString(yOffset));
+        renderBitmapString(yAxisTextStart, bottomLeft.y + yOffset, GLUT_BITMAP_8_BY_13, doubleToString(yOffset + bottomLeft.y));
 
         const GLdouble xOffset = cur * width * 0.1;
-        renderBitmapString(bottomLeft.x + xOffset, xAxisTextStart, GLUT_BITMAP_8_BY_13, doubleToString(xOffset));
+        renderBitmapString(bottomLeft.x + xOffset, xAxisTextStart, GLUT_BITMAP_8_BY_13, doubleToString(xOffset + bottomLeft.x));
     }
 
     size_t colourIndex = 0;
@@ -165,7 +165,7 @@ void display(void)
             BOOST_FOREACH(const DataPoint& data, cur->data)
             {
                 if(mode == Impulses)
-                    glVertex2d(data.x, 0);
+                    glVertex2d(data.x, bottomLeft.y);
                 glVertex2d(data.x, data.y);
             }
             glEnd();
