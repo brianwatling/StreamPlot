@@ -1,0 +1,5 @@
+project streamplot
+    : usage-requirements <include>.
+    ;
+
+exe streamplot : main.cpp /site-config//GL /site-config//GLUT /site-config//boost_program_options : <target-os>darwin:<linkflags>"-framework OpenGL -framework GLUT" ;

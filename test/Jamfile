@@ -1,0 +1,6 @@
+project streamplottest
+    ;
+
+using testing ;
+
+run test.cpp ;

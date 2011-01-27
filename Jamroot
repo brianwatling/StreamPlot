@@ -1,0 +1,15 @@
+project Jamroot
+    : usage-requirements <include>./src
+    ;
+
+use-project /streamplot : src ;
+use-project /test-streamplot : test ;
+
+build-project /streamplot ;
+build-project /test-streamplot ;
+
+alias install : install-lib install-headers ;
+install install-lib : /streamplot : <location>/usr/local/lib ;
+install install-headers : [ glob src/*.h ] : <location>/usr/local/include ;
+
+explicit install install-lib install-headers ;
