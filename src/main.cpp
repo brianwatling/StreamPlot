@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <string>
 #include "ServerSocket.h"
 
@@ -25,7 +27,7 @@ namespace po = boost::program_options;
 
 struct DataPoint
 {
-    DataPoint(GLfloat x, GLfloat y)
+    DataPoint(GLdouble x, GLdouble y)
     : x(x), y(x)
     {}
 
@@ -33,8 +35,8 @@ struct DataPoint
     : x(0), y(0)
     {}
 
-    GLfloat x;
-    GLfloat y;
+    GLdouble x;
+    GLdouble y;
 };
 
 struct StreamInfo
@@ -56,34 +58,118 @@ DataPoint bottomLeft(0, 0);
 bool gotFirst = 0;
 DataPoint topRight(0,0);
 
+const GLdouble colours[][3] = {
+                                {1, 0, 0},
+                                {0, 1, 0},
+                                {0, 0, 1},
+                                {1, 1, 0},
+                                {1, 0, 1},
+                           };
+
+const size_t numColours = sizeof(colours) / (3 * sizeof(GLdouble));
+
+enum Mode
+{
+    Points,
+    Lines,
+    Impulses,
+};
+
+Mode mode = Points;
+
+void renderBitmapString(float x, float y, void* font, const std::string& str)
+{  
+    glRasterPos3f(x, y, 0);
+    BOOST_FOREACH(char c, str)
+    {
+        glutBitmapCharacter(font, c);
+    }
+}
+
+std::string doubleToString(double d)
+{
+    std::ostringstream o;
+    o << std::setprecision(13) << d;
+    return o.str();
+}
+
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(bottomLeft.x, topRight.x, bottomLeft.y, topRight.y);
+
+    const GLdouble width = topRight.x - bottomLeft.x;
+    const GLdouble height = topRight.y - bottomLeft.y;
+
+    gluOrtho2D(bottomLeft.x - width * 0.1, topRight.x + width * 0.05, bottomLeft.y - height * 0.1, topRight.y + height * 0.05);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glColor3f(1.0,1.0,1.0);
+    glColor3f(1, 1, 1);
+    glBegin(GL_LINES);
+        //y axis
+        glVertex2d(bottomLeft.x, bottomLeft.y);
+        glVertex2d(bottomLeft.x, topRight.y);
 
-    /*glBegin(GL_LINES);
-        glVertex3f(-1,-1,0.0);
-        glVertex3f(1,1,0.0);
-    glEnd();*/
+        //x axis
+        glVertex2d(bottomLeft.x, bottomLeft.y);
+        glVertex2d(topRight.x, bottomLeft.y);
 
+        //ticks
+        const GLdouble yX = bottomLeft.x - width * 0.02;
+        const GLdouble xY = bottomLeft.y - height * 0.02;
+        for(GLdouble cur = 0; cur < 1; cur += 0.1)
+        {
+            //y
+            const GLdouble yY = bottomLeft.y + cur * height;
+            glVertex2d(bottomLeft.x, yY);
+            glVertex2d(yX, yY);
+
+            //x
+            const GLdouble xX = bottomLeft.x + cur * width;
+            glVertex2d(xX, bottomLeft.y);
+            glVertex2d(xX, xY);
+        }
+    glEnd();
+
+    const double yAxisTextStart = bottomLeft.x - width * 0.09;
+    const double xAxisTextStart = bottomLeft.y - height * 0.09;
+    for(GLdouble cur = 0; cur <= 10; cur += 1)
+    {
+        const GLdouble yOffset = cur * height * 0.1;
+        renderBitmapString(yAxisTextStart, bottomLeft.y + yOffset, GLUT_BITMAP_8_BY_13, doubleToString(yOffset));
+
+        const GLdouble xOffset = cur * width * 0.1;
+        renderBitmapString(bottomLeft.x + xOffset, xAxisTextStart, GLUT_BITMAP_8_BY_13, doubleToString(xOffset));
+    }
+
+    size_t colourIndex = 0;
     BOOST_FOREACH(const StreamInfoPtr& cur, streams)
     {
         if(!cur->data.empty())
         {
-            glBegin(GL_POINTS);
+            glColor3f(colours[colourIndex % numColours][0], colours[colourIndex % numColours][1], colours[colourIndex % numColours][2]);
+            switch(mode)
+            {
+            case Impulses:
+                glBegin(GL_LINES);
+            case Lines:
+                glBegin(GL_LINE_STRIP);
+            case Points:
+            default:
+                glBegin(GL_POINTS);
+            };
             BOOST_FOREACH(const DataPoint& data, cur->data)
             {
-                glVertex2f(data.x, data.y);
+                if(mode == Impulses)
+                    glVertex2d(data.x, 0);
+                glVertex2d(data.x, data.y);
             }
             glEnd();
+            ++colourIndex;
         }
     }
 
@@ -113,12 +199,12 @@ void update(void)
     DataPoint newData;
     BOOST_FOREACH(StreamInfoPtr& cur, streams)
     {
-        while(cur->clientSocket.readable() && cur->stream >> newData.x >> newData.y)
+        try
         {
-            try
+            while(cur->clientSocket.readable() && cur->stream >> newData.x >> newData.y)
             {
                 cur->data.push_back(newData);
-                std::cout << "new data " << cur->data.size() << std::endl;
+                //std::cout << "new data " << cur->data.size() << std::endl;
 
                 if(!gotFirst)
                 {
@@ -137,13 +223,14 @@ void update(void)
                     if(newData.y > topRight.y)
                         topRight.y = newData.y;
                 }
+
+                doSleep = false;
             }
-            catch(std::exception& e)
-            {
-                std::cerr << "exception reading stream: " << e.what() << std::endl;
-                cur->clientSocket.close();
-            }
-            doSleep = false;
+        }
+        catch(std::exception& e)
+        {
+            std::cerr << "exception reading stream: " << e.what() << std::endl;
+            cur->clientSocket.close();
         }
     }
 
@@ -168,6 +255,7 @@ int main(int argc, char* argv[])
     int height;
     std::string host;
     std::string port;
+    std::string dispMode;
     glutInit(&argc, argv);
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -176,6 +264,7 @@ int main(int argc, char* argv[])
         ("height", po::value<int>(&height)->default_value(600), "screen height")
         ("host", po::value<std::string>(&host)->default_value("localhost"), "host to listen for streams on")
         ("port", po::value<std::string>(&port)->default_value("10000"), "port to listen for streams on")
+        ("mode", po::value<std::string>(&dispMode)->default_value("points"), "pick points or lines")
     ;
 
     po::variables_map vm;
@@ -187,6 +276,11 @@ int main(int argc, char* argv[])
         std::cout << desc << "\n";
         return 1;
     }
+
+    if(dispMode == "lines")
+        mode = Lines;
+    if(dispMode == "impulses")
+        mode = Impulses;
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(width, height);
