@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
         ("height", po::value<int>(&height)->default_value(600), "screen height")
         ("host", po::value<std::string>(&host)->default_value("localhost"), "host to listen for streams on")
         ("port", po::value<std::string>(&port)->default_value("10000"), "port to listen for streams on")
-        ("mode", po::value<std::string>(&dispMode)->default_value("points"), "pick points or lines")
+        ("mode", po::value<std::string>(&dispMode)->default_value("points"), "pick points or lines or impulses")
     ;
 
     po::variables_map vm;

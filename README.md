@@ -1,18 +1,18 @@
 # A program to plot a stream
 
-- Plots live data from a socket as is is generated
+- Plots live data from a socket as it is generated
 - Can plot points, lines, or impulses
 - Potentially useful for analyzing log files on the fly or monitoring an application 
 
 ## Command line options
 
 Allowed options:
-  --help                  produce help message
-  --width arg (=800)      screen width
-  --height arg (=600)     screen height
-  --host arg (=localhost) host to listen for streams on
-  --port arg (=10000)     port to listen for streams on
-  --mode arg (=points)    pick points or lines
+    --help                  produce help message
+    --width arg (=800)      screen width
+    --height arg (=600)     screen height
+    --host arg (=localhost) host to listen for streams on
+    --port arg (=10000)     port to listen for streams on
+    --mode arg (=points)    pick points or lines or impulses
 
 ## Streams
 
