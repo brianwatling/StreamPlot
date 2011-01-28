@@ -31,3 +31,15 @@ Terminal 2:
     cur=1; while [ "$cur" -lt "100" ]; do echo "$cur $cur"; cur=`expr $cur + 1`; sleep 1; done | telnet localhost 10000
 
 After starting the while loop in the second terminal, watch as the plot is updated dynamically
+
+## TODO
+
+- 3D plotting?
+- multiple plots from the same stream? (ie. in [x, y1, y2, y3, ...] format)
+- labels?
+- better/more colours?
+- let me know what you need!
+
+## License
+
+Public domain. Credit is appreciated and I would like to hear about how you use it.
