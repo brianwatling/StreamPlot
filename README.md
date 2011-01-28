@@ -38,6 +38,8 @@ After starting the while loop in the second terminal, watch as the plot is updat
 - multiple plots from the same stream? (ie. in [x, y1, y2, y3, ...] format)
 - labels?
 - better/more colours?
+- support a maximum number of samples (possibly implemented by a circular buffer)
+- vertex arrays or vertex buffers if performance becomes a problem
 - let me know what you need!
 
 ## License
