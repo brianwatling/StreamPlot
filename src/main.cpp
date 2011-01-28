@@ -1,4 +1,8 @@
+#ifdef DARWIN
 #include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/foreach.hpp>
