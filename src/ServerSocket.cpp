@@ -34,7 +34,7 @@ ServerSocket::ServerSocket(const std::string& host, const std::string& port)
     struct addrinfo* res;
 
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;// use IPv4 or IPv6, whichever
+    hints.ai_family = AF_INET;// use IPv4 or IPv6, whichever
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;// fill in my IP for me
     if(getaddrinfo(host.c_str(), port.c_str(), &hints, &res))
