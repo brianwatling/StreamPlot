@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <string>
 #include "ServerSocket.h"
+#include <math.h>
 
 #ifdef _WIN32
 static void mssleep(int ms)
@@ -97,9 +98,122 @@ std::string doubleToString(double d)
     return o.str();
 }
 
+/*glBegin(GL_LINE_STRIP);
+    glVertex3d(-0.5, -0.5, -0.5);
+    glVertex3d(-0.5, 0.5, -0.5);
+    glVertex3d(0.5, 0.5, -0.5);
+    glVertex3d(0.5, -0.5, -0.5);
+    glVertex3d(-0.5, -0.5, -0.5);
+
+    glVertex3d(-0.5, -0.5, 0.5);
+    glVertex3d(-0.5, 0.5, 0.5);
+    glVertex3d(0.5, 0.5, 0.5);
+    glVertex3d(0.5, -0.5, 0.5);
+    glVertex3d(-0.5, -0.5, 0.5);
+glEnd();
+
+glBegin(GL_LINES);
+    glVertex3d(0.5, 0.5, -0.5);
+    glVertex3d(0.5, 0.5, 0.5);
+
+    glVertex3d(-0.5, 0.5, -0.5);
+    glVertex3d(-0.5, 0.5, 0.5);
+
+    glVertex3d(0.5, -0.5, -0.5);
+    glVertex3d(0.5, -0.5, 0.5);
+glEnd();*/
+
+void drawBox(double xScale = 1, double yScale = 1, double zScale = 1)
+{
+    glPushMatrix();
+        glColor3f(1, 0, 1);
+        glScaled(xScale, yScale, zScale);
+        glBegin(GL_TRIANGLE_STRIP);
+            glVertex3d(-0.5, -0.5, -0.5);
+            glVertex3d(-0.5, 0.5, -0.5);
+            glVertex3d(0.5, -0.5, -0.5);
+            glVertex3d(0.5, 0.5, -0.5);
+
+            glVertex3d(0.5, -0.5, 0.5);
+            glVertex3d(0.5, 0.5, 0.5);
+            glVertex3d(-0.5, -0.5, 0.5);
+            glVertex3d(-0.5, 0.5, 0.5);
+
+            glVertex3d(-0.5, -0.5, -0.5);
+            glVertex3d(-0.5, 0.5, -0.5);
+            glVertex3d(-0.5, 0.5, -0.5);
+
+            glVertex3d(-0.5, 0.5, 0.5);
+            glVertex3d(0.5, 0.5, -0.5);
+            glVertex3d(0.5, 0.5, 0.5);
+            glVertex3d(0.5, 0.5, 0.5);
+
+            glVertex3d(0.5, -0.5, 0.5);
+            glVertex3d(-0.5, -0.5, 0.5);
+            glVertex3d(0.5, -0.5, -0.5);
+            glVertex3d(-0.5, -0.5, -0.5);
+        glEnd();
+        glColor3f(0, 1, 1);
+        glBegin(GL_LINE_STRIP);
+            glVertex3d(-0.5, -0.5, -0.5);
+            glVertex3d(-0.5, 0.5, -0.5);
+            glVertex3d(0.5, 0.5, -0.5);
+            glVertex3d(0.5, -0.5, -0.5);
+            glVertex3d(-0.5, -0.5, -0.5);
+
+            glVertex3d(-0.5, -0.5, 0.5);
+            glVertex3d(-0.5, 0.5, 0.5);
+            glVertex3d(0.5, 0.5, 0.5);
+            glVertex3d(0.5, -0.5, 0.5);
+            glVertex3d(-0.5, -0.5, 0.5);
+        glEnd();
+
+        glBegin(GL_LINES);
+            glVertex3d(0.5, 0.5, -0.5);
+            glVertex3d(0.5, 0.5, 0.5);
+
+            glVertex3d(-0.5, 0.5, -0.5);
+            glVertex3d(-0.5, 0.5, 0.5);
+
+            glVertex3d(0.5, -0.5, -0.5);
+            glVertex3d(0.5, -0.5, 0.5);
+        glEnd();
+    glPopMatrix();
+}
+
+int width;
+int height;
+
+void drawArm(double yRot)
+{
+    glPushMatrix();
+        glTranslated(0.5, 0.7, 0);
+        glRotated((::sin(yRot) + 1) * 30.0 - 45, 0, 0, 1);
+        glTranslated(0.75 * 0.5, 0, 0);
+        drawBox(0.75, 0.1, 0.5);
+        glPushMatrix();
+            glTranslated(0.75 * 0.5, 0, 0);
+            glRotated((::sin(yRot) + 1) * 45.0, 0, 0, 1);
+            glTranslated(0.85 * 0.5, 0, 0);
+            drawBox(0.85, 0.1, 0.5);
+        glPopMatrix();
+    glPopMatrix();
+}
+
+void drawSphere(double xScale = 1, double yScale = 1, double zScale = 1)
+{
+    glPushMatrix();
+        glScaled(xScale, yScale, zScale);
+        
+        glutSolidSphere(0.5, 10, 10);
+
+    glPopMatrix();
+}
+
 void display(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -177,6 +291,47 @@ void display(void)
         }
     }
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, ((double)width) / (double)height, 1.0, 100.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0, 0, 25, 0, 0, 0, 0, 1, 0);
+
+    static double yRot = 0;
+    yRot += 0.05;
+
+    glColor3f(1, 1, 1);
+    glPushMatrix();
+        glTranslated(::sin(yRot), 5, 0);
+        glRotated(yRot * 180.0, 0, 0, 1);
+        drawBox();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslated(5, 0, 0);
+        glRotated(yRot * 180.0, 0, 0, 1);
+        glTranslated(0.5, 0.5, 0.5);
+        drawBox();
+    glPopMatrix();
+
+    glPushMatrix();
+        glRotated(yRot * 180.0, 1, 1, 0);
+        glPushMatrix();
+            glPushMatrix();
+                glTranslated(0, 1.25, 0);
+                drawSphere();
+            glPopMatrix();
+            drawBox(1, 1.5, 0.5);
+            drawArm(yRot);
+            glPushMatrix();
+                glRotated(180, 0, 1, 0);
+                drawArm(yRot);
+            glPopMatrix();
+        glPopMatrix();
+    glPopMatrix();
+
     glFlush();
     glutSwapBuffers();
 }
@@ -240,7 +395,7 @@ void update(void)
 
     if(doSleep)
     {
-        mssleep(100);
+        mssleep(1.0/30.0 * 1000.0);
     }
 
     glutPostRedisplay();
@@ -255,8 +410,6 @@ void changeSize(int w, int h)
 
 int main(int argc, char* argv[])
 {
-    int width;
-    int height;
     std::string host;
     std::string port;
     std::string dispMode;
@@ -286,7 +439,7 @@ int main(int argc, char* argv[])
     if(dispMode == "impulses")
         mode = Impulses;
 
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(width, height);
     glutInitWindowPosition (-1, -1);
     glutCreateWindow ("StreamPlot");
