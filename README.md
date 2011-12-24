@@ -7,6 +7,7 @@
 ## Command line options
 
 Allowed options:
+
     --help                  produce help message
     --width arg (=800)      screen width
     --height arg (=600)     screen height
@@ -24,10 +25,12 @@ Allowed options:
 - This example should run on linux, some Makefile adjustments may be needed to work on Mac or Windows
 
 Terminal 1:
+
     make
     ./streamplot --mode=impulses
 
 Terminal 2:
+
     cur=1; while [ "$cur" -lt "100" ]; do echo "$cur $cur"; cur=`expr $cur + 1`; sleep 1; done | telnet localhost 10000
 
 After starting the while loop in the second terminal, watch as the plot is updated dynamically
